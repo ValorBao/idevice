@@ -61,6 +61,7 @@ To keep dependency bloat and compile time down, everything is contained in featu
 | `mobile_image_mounter` | Manage DDI images.|
 | `location_simulation`  | Simulate GPS locations on the device.|
 | `pair`                 | Pair the device.|
+| `quic`                 | Remote Pairing QUIC tunnel carrying IPv6 datagrams (iOS 17 through 18.1).|
 | `syslog_relay` | Relay system logs from the device |
 | `tcp`                  | Connect to devices over TCP.|
 | `tunnel_tcp_stack`     | Naive in-process TCP stack for `core_device_proxy`.|
@@ -176,7 +177,22 @@ of how this library and their associated protocols work. But a general overview 
 1. That HTTP/2 is accessed through an NCM USB interface or CoreDeviceProxy
 1. CoreDeviceProxy is a lockdown service, see above
 
-This doesn't even touch RPPairing, which is still a mystery as of writing.
+### Remote Pairing QUIC
+
+iOS 17 through 18.1 can open a tunnel listener with `transportProtocolType: "quic"`.
+`QuicTunnel` connects to that listener (ALPN `RemotePairingTunnelProtocol`),
+runs the CDTunnel handshake on a QUIC stream, and carries IPv6 packets as QUIC
+datagrams. With `tunnel_tcp_stack`, `QuicTunnel::into_adapter` feeds those
+packets into the userspace TCP stack used to reach RSD.
+
+`RemotePairingSession` speaks the `_remotepairing._tcp` control socket.
+`pair_setup` runs the first-time trust dialog (SRP-3072; iOS uses PIN
+`000000` and waits while the device shows Trust) and returns a host record.
+`pair_verify` reuses that record, then the session sends the encrypted
+`createListener` request. The QUIC client certificate is the key inside that
+request (`QuicIdentity`). iOS 18.2 removed this listener and uses a TCP tunnel
+with TLS 1.2 PSK; `encryption_key` is that PSK (32 bytes after pair-verify,
+64 bytes after pair-setup).
 
 ## License
 
