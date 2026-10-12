@@ -127,6 +127,53 @@ fn print_plist(p: &Value, indentation: usize) -> String {
     }
 }
 
+/// Selects the rustls crypto backend enabled by crate features.
+///
+/// When both `ring` and `aws-lc` are enabled, ring is used.
+pub(crate) fn crypto_provider() -> rustls::crypto::CryptoProvider {
+    #[cfg(all(feature = "ring", not(feature = "aws-lc")))]
+    {
+        rustls::crypto::ring::default_provider()
+    }
+
+    #[cfg(all(feature = "aws-lc", not(feature = "ring")))]
+    {
+        rustls::crypto::aws_lc_rs::default_provider()
+    }
+
+    #[cfg(not(any(feature = "ring", feature = "aws-lc")))]
+    {
+        compile_error!(
+            "No crypto backend was selected! Specify an idevice feature for a crypto backend"
+        );
+    }
+
+    #[cfg(all(feature = "ring", feature = "aws-lc"))]
+    {
+        static WARN: std::sync::Once = std::sync::Once::new();
+        WARN.call_once(|| {
+            log::warn!("Both ring && aws-lc are selected as idevice crypto backends!");
+        });
+        rustls::crypto::ring::default_provider()
+    }
+}
+
+/// Installs [`crypto_provider`] as the process-wide rustls default, if none is set.
+pub(crate) fn install_crypto_provider() {
+    if rustls::crypto::CryptoProvider::get_default().is_none() {
+        #[cfg(all(feature = "ring", not(feature = "aws-lc")))]
+        log::debug!("Using ring crypto backend");
+        #[cfg(all(feature = "aws-lc", not(feature = "ring")))]
+        log::debug!("Using aws-lc crypto backend");
+        #[cfg(all(feature = "ring", feature = "aws-lc"))]
+        log::debug!("Using ring crypto backend, because both were passed");
+
+        if let Err(e) = rustls::crypto::CryptoProvider::install_default(crypto_provider()) {
+            log::error!("Failed to set crypto provider: {e:?}");
+        }
+    }
+}
+
 #[macro_export]
 macro_rules! obf {
     ($lit:literal) => {{

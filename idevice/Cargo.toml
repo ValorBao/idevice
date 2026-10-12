@@ -57,6 +57,10 @@ x509-cert = { version = "0.2", optional = true, features = [
 obfstr = { version = "0.4", optional = true }
 
 async_zip = { version = "0.0.18", optional = true }
+quinn = { version = "0.11", optional = true, default-features = false, features = [
+  "log",
+  "runtime-tokio",
+] }
 
 [dev-dependencies]
 tokio = { version = "1.43", features = ["full"] }
@@ -65,8 +69,8 @@ bytes = "1.10.1"
 
 [features]
 default = ["aws-lc"]
-aws-lc = ["rustls/aws-lc-rs", "tokio-rustls/aws-lc-rs"]
-ring = ["rustls/ring", "tokio-rustls/ring"]
+aws-lc = ["rustls/aws-lc-rs", "tokio-rustls/aws-lc-rs", "quinn?/rustls-aws-lc-rs"]
+ring = ["rustls/ring", "tokio-rustls/ring", "quinn?/rustls-ring"]
 
 afc = ["dep:chrono"]
 amfi = []
@@ -96,6 +100,19 @@ location_simulation = []
 pair = ["chrono/default", "tokio/time", "dep:sha2", "dep:rsa", "dep:x509-cert"]
 pcapd = []
 preboard_service = []
+quic = [
+  "core_device_proxy",
+  "dep:quinn",
+  "dep:bytes",
+  "dep:rsa",
+  "dep:sha2",
+  "dep:x509-cert",
+  "tokio/net",
+  "tokio/sync",
+  "tokio/time",
+  "tokio/rt",
+  "tokio/macros",
+]
 obfuscate = ["dep:obfstr"]
 restore_service = []
 rsd = ["xpc"]
@@ -135,6 +152,7 @@ full = [
   "pair",
   "pcapd",
   "preboard_service",
+  "quic",
   "restore_service",
   "rsd",
   "screenshotr",

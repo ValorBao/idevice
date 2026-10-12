@@ -29,6 +29,16 @@ pub struct CDTunnelPacket {
 impl CDTunnelPacket {
     const MAGIC: &'static [u8] = b"CDTunnel";
 
+    /// Builds a packet from an already-encoded body, usually JSON.
+    pub fn from_body(body: impl Into<Vec<u8>>) -> Self {
+        Self { body: body.into() }
+    }
+
+    /// Returns the packet body.
+    pub fn body(&self) -> &[u8] {
+        &self.body
+    }
+
     /// Parses a byte slice into a `CDTunnelPacket`.
     ///
     /// # Arguments
