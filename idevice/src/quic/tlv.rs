@@ -7,12 +7,16 @@ use std::collections::BTreeMap;
 
 use crate::IdeviceError;
 
+pub const METHOD: u8 = 0x00;
 pub const IDENTIFIER: u8 = 0x01;
+pub const SALT: u8 = 0x02;
 pub const PUBLIC_KEY: u8 = 0x03;
+pub const PROOF: u8 = 0x04;
 pub const ENCRYPTED_DATA: u8 = 0x05;
 pub const STATE: u8 = 0x06;
 pub const ERROR: u8 = 0x07;
 pub const SIGNATURE: u8 = 0x0A;
+pub const INFO: u8 = 0x11;
 
 /// Encodes TLV8 entries, splitting any value longer than 255 bytes.
 pub fn encode(entries: &[(u8, &[u8])]) -> Vec<u8> {
