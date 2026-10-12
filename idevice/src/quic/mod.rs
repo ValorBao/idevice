@@ -1,8 +1,10 @@
 //! Remote Pairing QUIC tunnel.
 //!
 //! iOS 17 through 18.1 can open a CoreDevice tunnel listener over QUIC. After
-//! an RPPairing session asks the device to `createListener` with
-//! [`QuicIdentity::listener_request`], connect with [`QuicTunnel::connect`].
+//! [`RemotePairingSession`] completes pair-verify for an existing host record
+//! and asks the device to `createListener`. [`QuicTunnel::connect`] attaches to
+//! the UDP port that request returns. [`QuicIdentity::listener_request`] is the
+//! body of that request.
 //!
 //! The CDTunnel handshake travels on a bidirectional QUIC stream. IPv6 packets
 //! travel in QUIC datagrams. [`QuicTunnel::into_packet_stream`] presents those
@@ -26,7 +28,9 @@
 //! ```
 
 mod identity;
+mod pairing;
 mod stream;
+mod tlv;
 
 use std::{
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
@@ -49,6 +53,7 @@ use crate::{
 };
 
 pub use identity::QuicIdentity;
+pub use pairing::{PairingRecord, RemotePairingSession};
 pub use stream::QuicPacketStream;
 
 /// ALPN announced by Apple's Remote Pairing QUIC listener.

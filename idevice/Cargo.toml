@@ -61,6 +61,11 @@ quinn = { version = "0.11", optional = true, default-features = false, features 
   "log",
   "runtime-tokio",
 ] }
+ed25519-dalek = { version = "2", optional = true, features = ["rand_core"] }
+x25519-dalek = { version = "2", optional = true }
+chacha20poly1305 = { version = "0.10", optional = true }
+hkdf = { version = "0.12", optional = true }
+rand_core = { version = "0.6", optional = true, features = ["getrandom"] }
 
 [dev-dependencies]
 tokio = { version = "1.43", features = ["full"] }
@@ -107,11 +112,17 @@ quic = [
   "dep:rsa",
   "dep:sha2",
   "dep:x509-cert",
+  "dep:ed25519-dalek",
+  "dep:x25519-dalek",
+  "dep:chacha20poly1305",
+  "dep:hkdf",
+  "dep:rand_core",
   "tokio/net",
   "tokio/sync",
   "tokio/time",
   "tokio/rt",
   "tokio/macros",
+  "tokio/io-util",
 ]
 obfuscate = ["dep:obfstr"]
 restore_service = []

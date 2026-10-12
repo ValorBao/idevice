@@ -185,11 +185,12 @@ runs the CDTunnel handshake on a QUIC stream, and carries IPv6 packets as QUIC
 datagrams. With `tunnel_tcp_stack`, `QuicTunnel::into_adapter` feeds those
 packets into the userspace TCP stack used to reach RSD.
 
-The QUIC client certificate must be the same key advertised in the
-`createListener` request (`QuicIdentity::listener_request`). iOS 18.2 removed
-this listener and uses a TCP tunnel with TLS 1.2 PSK instead.
-
-This doesn't even touch the rest of RPPairing (pair-setup / pair-verify).
+`RemotePairingSession` speaks the `_remotepairing._tcp` control socket. It
+pair-verifies an existing host record, then sends the encrypted
+`createListener` request. The QUIC client certificate is the key inside that
+request (`QuicIdentity`). iOS 18.2 removed this listener and uses a TCP tunnel
+with TLS 1.2 PSK; the pair-verify shared secret (`encryption_key`) is that PSK.
+Pair-setup, the first-time trust dialog, is not implemented yet.
 
 ## License
 
